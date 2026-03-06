@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 
-export default function MessageInput({ onSend }) {
+interface MessageInputProps {
+  onSend: (text: string) => void;
+}
+
+export default function MessageInput({ onSend }: MessageInputProps) {
   const [text, setText] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (text.trim()) {
       onSend(text.trim());

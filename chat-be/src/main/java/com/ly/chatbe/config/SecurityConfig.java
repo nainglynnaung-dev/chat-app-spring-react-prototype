@@ -16,9 +16,9 @@ public class SecurityConfig {
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth->auth.requestMatchers("/ws-chat/**").authenticated().anyRequest().permitAll())
+                .authorizeHttpRequests(auth->auth.requestMatchers("/ws-chat/**").permitAll().anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults());
         return httpSecurity.build();
 
