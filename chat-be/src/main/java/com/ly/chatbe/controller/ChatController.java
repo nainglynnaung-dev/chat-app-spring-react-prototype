@@ -6,6 +6,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import java.security.Principal;
 
 @Controller
 public class ChatController {
@@ -28,7 +29,20 @@ public class ChatController {
     }
 
     @MessageMapping("/chat.sendToUser/{username}")
-    public void sendToUser(@DestinationVariable String username, @Payload ChatMessage message) {
+    public void sendToUser(@DestinationVariable String username, Principal principal, @Payload ChatMessage message) {
+        String sender = (principal != null) ? principal.getName() : message.getSender();
+        message.setSender(sender);
+        message.setReceiver(username);
+        
+        System.out.println("USER_MSG: [" + sender + "] -> [" + username + "] Content: " + message.getContent());
+        
+        // Send to the recipient
         simpMessagingTemplate.convertAndSendToUser(username, "/queue/private", message);
+        
+        // Also send back to the sender so all their sessions (tabs/devices) are in sync
+        if (principal != null && !username.equalsIgnoreCase(sender)) {
+            System.out.println("LOOPBACK_MSG: [" + sender + "] -> [" + sender + "] (Syncing sessions)");
+            simpMessagingTemplate.convertAndSendToUser(sender, "/queue/private", message);
+        }
     }
 }

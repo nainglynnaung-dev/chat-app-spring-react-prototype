@@ -10,6 +10,10 @@ export const connectWebSocket = (
   onError: (error: any) => void,
   onMessageReceived: (msg: any) => void
 ) => {
+  if (client && client.active) {
+    client.deactivate();
+  }
+
   client = new Client({
     webSocketFactory: () => {
        return new SockJS("http://localhost:8080/ws-chat");
@@ -23,8 +27,8 @@ export const connectWebSocket = (
       console.log("Connected to WebSocket");
       
       if (client) {
-        // Subscribe to a specific queue tailored for this username
-        client.subscribe(`/queue/private.${username}`, (message) => {
+        // Subscribe to user-specific queue for private messages
+        client.subscribe(`/user/queue/private`, (message) => {
           onMessageReceived(JSON.parse(message.body));
         });
       }
@@ -75,7 +79,7 @@ export const sendMessageToGroup = (groupId: string, msg: any) => {
 export const sendMessageToUser = (username: string, msg: any) => {
   if (client && client.connected) {
     client.publish({
-      destination: `/queue/private.${username}`,
+      destination: `/app/chat.sendToUser/${username}`,
       body: JSON.stringify(msg),
     });
   }
